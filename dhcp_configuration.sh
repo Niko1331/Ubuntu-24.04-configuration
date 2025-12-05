@@ -35,5 +35,5 @@ subnet $NETWORK netmask 255.255.255.0 {
 	option domain-name-servers 1.1.1.1;
 }
 
-authoriative;
+authoritative;
 EOF
