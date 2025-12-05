@@ -1,15 +1,7 @@
 #!/bin/bash
-# find-lan-from-netplan.sh – działa na każdej konfiguracji Netplana Ubuntu 24.04
 
 set -e
 
-echo "Szukam karty LAN z adresem statycznym z Netplana..."
-
-# 1. Znajdź linijkę z "addresses:" i wyciągnij nazwę interfejsu
-LAN_IF=$(grep -r "^[[:space:]]*addresses:" /etc/netplan/*.yaml 2>/dev/null | \
-    head -1 | \
-    sed -E 's|.*/([a-zA-Z0-9-]+)\.yaml:.*/|\1/' | \
-    awk '{print $1}' | xargs)
 
 # Fallback – jeśli inna składnia Netplana
 if [ -z "$LAN_IF" ]; then
@@ -21,8 +13,8 @@ fi
 if [ -z "$LAN_IF" ]; then
     echo "Netplan nie dał wyniku – szukam po adresie prywatnym..."
     LAN_IF=$(ip -4 -o addr show | awk '
-        $4 ~ /^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|169\.254\.)/ && 
-        $0 !~ /secondary/ && 
+        $4 ~ /^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|169\.254\.)/ &&
+        $0 !~ /secondary/ &&
         $2 != "lo" {print $2; exit}'
     )
 fi

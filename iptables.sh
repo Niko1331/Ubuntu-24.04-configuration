@@ -16,17 +16,30 @@ echo "Karta WAN = $WAN_IF"
 
 # kod na wykrycie karty LAN
 
-echo "Wykrywanie karty LAN..."
-LAN_IF=$(ip -o -4 addr show | awk '
-	$4 ~ /^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/ && $0 !~ /secondary/ {print $2; exit}
-')
 
 if [ -z "$LAN_IF" ]; then
-LAN_IF=$(ip link | awk -F: '/^[0-9]+:/ {print $2}' | grep -v lo | head -1)
+    LAN_IF=$(grep -r "addresses:" /etc/netplan/*.yaml 2>/dev/null | \
+        head -1 | awk -F':' '{print $1}' | xargs | sed 's|.*/||' | sed 's/\.yaml.*//')
 fi
-[ -z "$LAN_IF" ] && { echo "Nie znaleziono LAN!"; exit 1; }
 
-echo "LAN = $LAN_IF"
+
+if [ -z "$LAN_IF" ]; then
+    echo "Netplan nie dał wyniku – szukam po adresie prywatnym..."
+    LAN_IF=$(ip -4 -o addr show | awk '
+        $4 ~ /^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|169\.254\.)/ &&
+        $0 !~ /secondary/ &&
+        $2 != "lo" {print $2; exit}'
+    )
+fi
+
+
+if [ -z "$LAN_IF" ]; then
+    echo "Nie znaleziono żadnej karty LAN ze statycznym adresem!"
+    echo "Sprawdź ręcznie: grep -r addresses /etc/netplan/"
+    exit 1
+fi
+
+echo "  Interfejs: $LAN_IF"
 
 # reszta tych komend iptables
 
@@ -35,7 +48,7 @@ sudo iptables --table nat --flush
 sudo iptables --table nat --delete-chain
 sudo iptables --delete-chain
 sudo iptables --table nat --append POSTROUTING --out-interface "$WAN_IF" -j MASQUERADE
-sudo ipables --append FORWARD --in-interface "$LAN_IF" -j ACCEPT
+sudo iptables --append FORWARD --in-interface "$LAN_IF" -j ACCEPT
 sudo iptables-save
 sudo sysctl -w net.ipv4.ip_forward=1
 #instalacja pakietu iptables-persistent żeby konfiguracja była na stałę
