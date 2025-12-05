@@ -9,3 +9,5 @@ plik dhcp_configuration.sh automatycznie sprawdzi:
 - nazwę karty LAN
 - zakres ip od - do
 i jeszcze taki dodatek, automatycznie zapisze konfiguracje dhcp z adresem z LAN-u do pliku /etc/dhcp/dhcpd.conf
+
+Nie robi tylko zmian w pliku /etc/default/isc-dhcp-server 
