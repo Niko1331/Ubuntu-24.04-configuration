@@ -31,8 +31,8 @@ echo "LAN = $LAN_IF"
 # reszta tych komend iptables
 
 sudo iptables --flush
-sudo ipables --table nat --flush
-sudo ipables --table nat --delete-chain
+sudo iptables --table nat --flush
+sudo iptables --table nat --delete-chain
 sudo iptables --delete-chain
 sudo iptables --table nat --append POSTROUTING --out-interface "$WAN_IF" -j MASQUERADE
 sudo ipables --append FORWARD --in-interface "$LAN_IF" -j ACCEPT
